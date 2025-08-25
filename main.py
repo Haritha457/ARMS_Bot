@@ -22,6 +22,10 @@ course_just_found = False
 
 # Slot Map
 slot_map = {
+    'G': '7',
+    'H': '8',
+    'M': '13',
+    'N': '14',
     'O': '15',
     'P': '16',
     'Q': '17',
