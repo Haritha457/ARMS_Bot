@@ -22,10 +22,6 @@ course_just_found = False
 
 # Slot Map
 slot_map = {
-    'G': '7',
-    'H': '8',
-    'M': '13',
-    'N': '14',
     'O': '15',
     'P': '16',
     'Q': '17',
@@ -155,25 +151,42 @@ def keep_alive():
 keep_alive()
 send_telegram("🤖 Bot is running. Send /start to begin monitoring.")
 
-# 🔁 MAIN LOOP
+# 🔁 MAIN LOOP - Fixed timing logic
 while True:
-    check_for_commands()
+    try:
+        check_for_commands()
 
-    if monitoring_enabled and current_course:
-        found = check_course_in_slots(current_course)
+        if monitoring_enabled and current_course:
+            # Record start time for precise 15-minute interval
+            cycle_start_time = time.time()
+            
+            found = check_course_in_slots(current_course)
 
-        if found:
-            send_telegram(f"✅ Monitoring complete for {current_course}. Please send the next course or /stop.")
-            current_course = None
-            course_just_found = True
+            if found:
+                send_telegram(f"✅ Monitoring complete for {current_course}. Please send the next course or /stop.")
+                current_course = None
+                course_just_found = True
+                continue
 
-        # Wait 15 minutes, checking every 3 seconds for /stop or new input
-        for _ in range(300):
-            check_for_commands()
-            if not monitoring_enabled or course_just_found:
-                course_just_found = False
-                break
-            time.sleep(3)
+            # Wait for exactly 15 minutes from start of cycle, checking commands every 3 seconds
+            next_check_time = cycle_start_time + 900  # 15 minutes = 900 seconds
+            
+            while time.time() < next_check_time:
+                if not monitoring_enabled or course_just_found:
+                    course_just_found = False
+                    break
+                
+                check_for_commands()
+                
+                # Sleep for 3 seconds, but don't exceed next check time
+                remaining_time = next_check_time - time.time()
+                sleep_time = min(3, remaining_time)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
 
-    else:
-        time.sleep(5)
+        else:
+            time.sleep(5)
+    
+    except Exception as e:
+        send_telegram(f"⚠️ Bot error: {str(e)[:100]}. Continuing...")
+        time.sleep(10)
