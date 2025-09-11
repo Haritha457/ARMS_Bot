@@ -173,7 +173,7 @@ while True:
                 continue
 
             # Wait for exactly 15 minutes from start of cycle, checking commands every 3 seconds
-            next_check_time = cycle_start_time + 900  # 15 minutes = 900 seconds
+            next_check_time = cycle_start_time + 180  # 3 minutes = 180 seconds
             
             while time.time() < next_check_time:
                 if not monitoring_enabled or course_just_found:
